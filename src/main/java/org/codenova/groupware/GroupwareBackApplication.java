@@ -1,4 +1,4 @@
-package org.codenova.groupwareback;
+package org.codenova.groupware;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
