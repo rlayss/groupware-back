@@ -1,8 +1,12 @@
 package org.codenova.groupware.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Setter
+@Getter
 // @Table(name="serial")    // 엔티티명과 테이블 명이 일치하면 생략
 public class Serial {
     @Id
