@@ -13,6 +13,7 @@ import org.codenova.groupware.request.AddNote;
 import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,6 +32,8 @@ public class NoteController {
     private final EmployeeRepository employeeRepository;
     private final NoteRepository noteRepository;
     private final NoteStatusRepository noteStatusRepository;
+
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
     public ResponseEntity<?> createNote(@RequestAttribute String subject,
@@ -63,6 +66,9 @@ public class NoteController {
         */
 
         List<Employee> receivers = employeeRepository.findAllById(addNote.getReceiverIds());
+
+
+
         /*
         List<NoteStatus> noteStatusList = new ArrayList<>();
         for(Employee e: receivers) {
@@ -82,6 +88,11 @@ public class NoteController {
             return NoteStatus.builder().note(note).isRead(false).isDelete(false).receiver(employee).build();
         }).toList();
         noteStatusRepository.saveAll(noteStatus);
+
+        for(Employee receiver : receivers) {
+            messagingTemplate.convertAndSend("/private/"+receiver.getId(), "새로운 쪽지를 수신하였습니다.");
+        }
+
 
         return ResponseEntity.status(203).body(null);
     }
@@ -129,10 +140,13 @@ public class NoteController {
         if(!noteStatus.getReceiver().getId().equals(subject)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "자신이 받은 쪽지만 상태 변경 가능.");
         }
-        noteStatus.setIsRead(true);
-        noteStatus.setReadAt(LocalDateTime.now());
+        if(!noteStatus.getIsRead()) {
+            noteStatus.setIsRead(true);
+            noteStatus.setReadAt(LocalDateTime.now());
+            noteStatusRepository.save(noteStatus);
+            messagingTemplate.convertAndSend("/private/"+noteStatus.getNote().getSender().getId(), subject+"가 당신이 보낸 쪽지를 확인하였습니다." );
+        }
 
-        noteStatusRepository.save(noteStatus);
         return ResponseEntity.status(200).body(noteStatus);
     }
 
