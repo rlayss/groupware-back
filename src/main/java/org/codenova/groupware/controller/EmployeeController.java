@@ -90,6 +90,7 @@ public class EmployeeController {
 
 
         LoginResult loginResult = LoginResult.builder().token(token).employee(employee.get()).build();
+
         messagingTemplate.convertAndSend("/public", employee.get().getId()+" 가 로그인하였습니다.");
         return ResponseEntity.status(200).body(loginResult);
     }
@@ -107,4 +108,3 @@ public class EmployeeController {
 
 
 }
-
