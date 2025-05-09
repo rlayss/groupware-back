@@ -9,6 +9,7 @@ import org.codenova.groupware.request.AddBoard;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,6 +25,7 @@ import java.util.function.Supplier;
 public class BoardController {
     private final EmployeeRepository employeeRepository;
     private final BoardRepository boardRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
     public ResponseEntity<Board> createBoard(@RequestAttribute String subject, @RequestBody AddBoard addBoard) throws Throwable {
@@ -43,6 +45,7 @@ public class BoardController {
                 .build();
 
         boardRepository.save(board);
+        messagingTemplate.convertAndSend("/public", "새글이 등록되었습니다.");
 
         return ResponseEntity.status(201).body(board);
     }
